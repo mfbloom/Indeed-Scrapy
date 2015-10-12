@@ -32,6 +32,7 @@ class MsindeedItem(scrapy.Item):
     
     positionDescription = scrapy.Field()
     positionDescriptionURL = scrapy.Field()
+    positionLocation = scrapy.Field()
     
     #//*[@id="job_summary"]/p[2]
     

@@ -23,9 +23,12 @@ class myspider(CrawlSpider):
     name = "myspider"
     allowed_domains = ["indeed.com","brassring.com"]
     start_urls = ('http://www.indeed.com/jobs?q=PSEG+OR+%22Con+Edison%22&l=Huntington+Station%2C+NY',)
-    rules=(Rule(LinkExtractor(allow=(), restrict_xpaths=('//*[@class="pagination"]',)), callback="parse_page", follow= True),)
+    #rules=(Rule(LinkExtractor(allow=(), restrict_xpaths=('//*[@id="resultsCol"]/div/a/span/span',)), callback="parse_page", follow= True),)
 
-
+    def start_requests(self):
+        for i in xrange(1000):
+            yield self.make_requests_from_url('http://www.indeed.com/jobs?q=PSEG+OR+%22Con+Edison%22&l=Huntington+Station%2C+NY&start=%d' %i)
+            
     def parse(self, response):
         print "****STEP 1****"
         jobs = scrapy.Selector(response).xpath('//*[@id="resultsCol"]/div/h2')
@@ -41,17 +44,16 @@ class myspider(CrawlSpider):
         for link in urls:
             yield Request(urljoin(response.url, link[1:]),callback=self.parse_url)
             
-        #for link in myLinks:
-            #tempURL = self.make_requests_from_url(link)
-                #yield Request(url=link,callback=self.parse_data(response))
-            #yield self.make_requests_from_url(link)
     def parse_url(self,response):
-        
         print "******RESPONSE URL******"
-        print response.url
-        jobs = scrapy.Selector(response).xpath('//*[@class="TEXT"]')
-        title = jobs.xpath('text()').extract()
-        print title
+        jobs = scrapy.Selector(response).xpath('//table')
+        
+        myJob = MsindeedItem()
+        for job in jobs:
+            myJob['positionTitle'] = jobs.xpath('//*[@id="Title"]/text()').extract()
+            myJob['positionDescription'] = jobs.xpath('//*[@id="Job Description"]/text()').extract()
+            myJob['positionLocation'] = jobs.xpath('//*[@id="Location"]/text()').extract()
+            yield myJob
 
         pass
         
